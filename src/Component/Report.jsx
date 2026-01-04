@@ -18,27 +18,52 @@ import {
 const COLORS = ["#3BB273", "#10B981", "#3B82F6", "#F59E0B", "#EF4444", "#6366F1"];
 
 const Report = () => {
-  const { user } = useContext(AuthContext) || {};
+  const { user, roleLoading } = useContext(AuthContext) || {};
   const baseUrl = import.meta.env.VITE_BaseURL?.replace(/\/+$/, "");
-  const token = localStorage.getItem("access-token");
   const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.email) return;
+    if (roleLoading) return;
+    if (!user?.email) {
+      setTransactions([]);
+      setLoading(false);
+      return;
+    }
+
+    const token = localStorage.getItem("access-token");
+    if (!token) {
+      setTransactions([]);
+      setLoading(false);
+      return;
+    }
 
     const loadData = async () => {
-      const authHeaders = token
-        ? { headers: { authorization: `Bearer ${token}` } }
-        : {};
-      const res = await axios.get(
-        `${baseUrl}/transactions?email=${user.email}`,
-        authHeaders
-      );
-      setTransactions(res.data);
+      const authHeaders = { headers: { authorization: `Bearer ${token}` } };
+      try {
+        const res = await axios.get(
+          `${baseUrl}/transactions?email=${user.email}`,
+          authHeaders
+        );
+        setTransactions(res.data);
+      } catch (error) {
+        console.error("Failed to load report data", error);
+        setTransactions([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadData();
-  }, [user?.email]);
+  }, [user?.email, roleLoading]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-success">
+        Loading reports...
+      </div>
+    );
+  }
 
   if (!user) {
     return (

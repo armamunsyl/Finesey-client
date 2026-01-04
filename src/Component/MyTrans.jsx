@@ -4,7 +4,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 
 const MyTrans = () => {
-  const { user } = useContext(AuthContext) || {};
+  const { user, roleLoading } = useContext(AuthContext) || {};
   const baseUrl = import.meta.env.VITE_BaseURL?.replace(/\/+$/, "");
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,24 +23,37 @@ const MyTrans = () => {
 
   useEffect(() => {
     const fetchTransactions = async () => {
+      if (roleLoading) return;
       if (!user?.email) {
         setTransactions([]);
         setLoading(false);
         return;
       }
+
       const token = localStorage.getItem("access-token");
-      const authHeaders = token
-        ? { headers: { authorization: `Bearer ${token}` } }
-        : {};
-      const res = await axios.get(
-        `${baseUrl}/transactions?email=${user.email}`,
-        authHeaders
-      );
-      setTransactions(res.data);
-      setLoading(false);
+      if (!token) {
+        setTransactions([]);
+        setLoading(false);
+        return;
+      }
+
+      const authHeaders = { headers: { authorization: `Bearer ${token}` } };
+
+      try {
+        const res = await axios.get(
+          `${baseUrl}/transactions?email=${user.email}`,
+          authHeaders
+        );
+        setTransactions(res.data);
+      } catch (error) {
+        console.error("Failed to load transactions", error);
+        setTransactions([]);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchTransactions();
-  }, [user?.email]);
+  }, [user?.email, roleLoading]);
 
   useEffect(() => {
     setPage(1);
