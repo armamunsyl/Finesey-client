@@ -10,13 +10,15 @@ const Login = () => {
   const from = location.state?.from?.pathname || "/";
 
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const demoEmail = "demo@gmail.com";
+  const demoPassword = "Demo###1";
 
   const handleLogin = (e) => {
     e.preventDefault();
     setLoading(true);
-
-    const email = e.target.email.value;
-    const password = e.target.password.value;
 
     loginUser(email, password)
       .then(() => {
@@ -33,6 +35,37 @@ const Login = () => {
           icon: "error",
           title: "Login Failed!",
           text: "Invalid email or password.",
+          confirmButtonColor: "#EF4444",
+        });
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const handleDemoFill = () => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+  };
+
+  const handleDemoLogin = () => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setLoading(true);
+
+    loginUser(demoEmail, demoPassword)
+      .then(() => {
+        Swal.fire({
+          icon: "success",
+          title: "Demo Login Successful!",
+          text: "You are now exploring FinEase as a demo user.",
+          confirmButtonColor: "#22C55E",
+        });
+        navigate(from, { replace: true });
+      })
+      .catch(() => {
+        Swal.fire({
+          icon: "error",
+          title: "Demo Login Failed!",
+          text: "Demo credentials are not working right now.",
           confirmButtonColor: "#EF4444",
         });
       })
@@ -80,6 +113,8 @@ const Login = () => {
               name="email"
               required
               placeholder="example@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 border border-base-300 bg-base-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
             />
           </div>
@@ -93,6 +128,8 @@ const Login = () => {
               name="password"
               required
               placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 border border-base-300 bg-base-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
             />
           </div>
@@ -106,6 +143,35 @@ const Login = () => {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+
+        <div className="mt-4 rounded-xl border border-base-300 bg-base-200/60 p-4">
+          <p className="text-sm text-base-content/70">
+            Want a demo account? Use:
+          </p>
+          <p className="text-sm font-medium text-base-content mt-2">
+            Email: {demoEmail}
+          </p>
+          <p className="text-sm font-medium text-base-content">
+            Pass: {demoPassword}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 mt-3">
+            <button
+              type="button"
+              onClick={handleDemoFill}
+              className="flex-1 px-4 py-2 rounded-lg border border-base-300 text-sm hover:bg-base-100 transition"
+            >
+              Autofill Demo
+            </button>
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={loading}
+              className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-success hover:bg-success/90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? "Logging in..." : "One-click Demo Login"}
+            </button>
+          </div>
+        </div>
 
         <div className="flex items-center my-6">
           <hr className="flex-1 border-base-300" />

@@ -8,6 +8,7 @@ const MyProfile = () => {
 
   const [name, setName] = useState("");
   const [photoURL, setPhotoURL] = useState("");
+  const isDemoAccount = user?.email === "demo@gmail.com";
 
   useEffect(() => {
     setName(user?.displayName || "");
@@ -19,6 +20,16 @@ const MyProfile = () => {
 
   const handleUpdate = (e) => {
     e.preventDefault();
+
+    if (isDemoAccount) {
+      Swal.fire({
+        icon: "warning",
+        title: "Demo Account",
+        text: "You are using a demo account, you can't update any info, please create or login to your account to update information.",
+        confirmButtonColor: "#22C55E",
+      });
+      return;
+    }
 
     updateUserProfile(name, photoURL)
       .then(() => {
